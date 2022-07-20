@@ -3,29 +3,37 @@ using System.Collections;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-public class GameController : MonoBehaviour 
+public class GameController : MonoBehaviour
 {
+    public static GameController Instance;
     public int[] cardIndexes;
     public CardModel[] cards;
 
-    public CardModel lastCard;
+    public CardModel LastCard { get; set; }
 
-    public int jogadas;
+    public int Tries { get; private set; }
 
-    public bool processando;
+    public bool Processing { get; set; }
 
-    public Text tentativas;
+    [Header("UI")]
+    [SerializeField]
+    private Text triesText;
 
-    void Start()
+    private void Awake()
+    {
+        Instance = this;
+    }
+
+    private void Start()
     {
         StartGame();
     }
 
-    void StartGame()
+    private void StartGame()
     {
-        lastCard = null;
-        jogadas = 0;
-        processando = false;
+        LastCard = null;
+        Tries = 0;
+        Processing = false;
 
         cards = FindObjectsOfType<CardModel>();
 
@@ -39,23 +47,18 @@ public class GameController : MonoBehaviour
 
         int position = 0;
         while (true) {
-        //for (int i = 0; i < numberOfIndexes; i++) {
 unique:
             int newCard = Random.Range(0, 51);
-            //print ("novo " + newCard);
             for (int j = 0; j < numberOfIndexes; j++) {
                 if (newCard == cardIndexes[j]) {
-                    print (newCard + " repetido");
+                    //print (newCard + " repetido");
                     goto unique;
                 }
             }
-            //print ("salva novo card");
             cardIndexes[position] = newCard;
             position++;
             if (position == numberOfIndexes) break;
         }
-        //return;
-        //associa de 2 em 2
         for (int i = 0; i < numberOfIndexes; i++) {
             cards[i].cardIndex = cardIndexes[i];
             cards[i + numberOfIndexes].cardIndex = cardIndexes[i];
@@ -69,25 +72,17 @@ unique:
             int temp = cards[pos1].cardIndex;
             cards[pos1].cardIndex = cards[pos2].cardIndex;
             cards[pos2].cardIndex = temp;
-
         }
     }
     
-    public void AlterarTentativas()
+    public void UpdateTries()
     {
-        jogadas++;
-        tentativas.text = "Tentativas: " + jogadas;
-
+        Tries++;
+        triesText.text = "Tries: " + Tries;
     }
 
-    /// <summary>
-    /// Reset is called when the user hits the Reset button in the Inspector's
-    /// context menu or when adding the component the first time.
-    /// </summary>
     public void ResetGame()
     {
         SceneManager.LoadScene(0);
     }
-
-
 }

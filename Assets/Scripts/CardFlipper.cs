@@ -4,34 +4,33 @@ using System.Collections;
 public class CardFlipper : MonoBehaviour 
 {
     SpriteRenderer spriteRenderer;
-    CardModel model;
 
     public AnimationCurve scaleCurve;
     public float duration = 0.5f;
-
-    void Awake()
+    private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
-        model = GetComponent<CardModel>();
     }
 
-    public void FlipCard(Sprite startImage, Sprite endImage, int cardIndex)
+    public void FlipCard(Sprite startImage, Sprite endImage)
     {
-        StopCoroutine(Flip(startImage, endImage, cardIndex));
-        StartCoroutine(Flip(startImage, endImage, cardIndex));
+        StopCoroutine(Flip(startImage, endImage));
+        StartCoroutine(Flip(startImage, endImage));
     }
 
-    IEnumerator Flip(Sprite startImage, Sprite endImage, int cardIndex)
+    IEnumerator Flip(Sprite startImage, Sprite endImage)
     {
         spriteRenderer.sprite = startImage;
 
         float time = 0f;
+        float originalScaleX = transform.localScale.x;
+        Vector3 localScale = transform.localScale;
         while (time <= 1f)
         {
-            float scale = scaleCurve.Evaluate(time);
-            time = time + Time.deltaTime / duration;
+            float scale = scaleCurve.Evaluate(time) * originalScaleX;
+            time += Time.deltaTime / duration;
 
-            Vector3 localScale = transform.localScale;
+            localScale = transform.localScale;
             localScale.x = scale;
             transform.localScale = localScale;
 
@@ -43,14 +42,8 @@ public class CardFlipper : MonoBehaviour
             yield return new WaitForFixedUpdate();
         }
 
-        if (cardIndex == -1)
-        {
-            model.ToggleFace(false);
-        }
-        else
-        {
-            model.cardIndex = cardIndex;
-            model.ToggleFace(true);
-        }
+        localScale.x = originalScaleX; //back to normal size
+        transform.localScale = localScale;
+
     }
 }

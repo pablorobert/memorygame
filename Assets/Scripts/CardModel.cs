@@ -3,24 +3,31 @@ using System.Collections;
 
 public class CardModel : MonoBehaviour
 {
-    SpriteRenderer spriteRenderer;
-
     public Sprite[] faces;
     public Sprite cardBack;
     public int cardIndex; // e.g. faces[cardIndex];
-    public bool isFaceUp;
+    private bool isFaceUp;
 
-    private GameController gameController;
+    private SpriteRenderer spriteRenderer;
+    private CardFlipper flipper;
+
+    private void Awake()
+    {
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        flipper = GetComponent<CardFlipper>();
+
+        isFaceUp = false; //while debugging
+    }
 
     public void ToggleFace(bool showFace)
     {
         if (showFace)
         {
-            spriteRenderer.sprite = faces[cardIndex];
+            flipper.FlipCard(spriteRenderer.sprite, faces[cardIndex]);
         }
         else
         {
-            spriteRenderer.sprite = cardBack;
+            flipper.FlipCard(spriteRenderer.sprite, cardBack);
         }
     }
 
@@ -30,59 +37,34 @@ public class CardModel : MonoBehaviour
         ToggleFace(isFaceUp);
     }
 
-
-    void Awake()
+    private void OnMouseDown()
     {
-        spriteRenderer = GetComponent<SpriteRenderer>();
-        isFaceUp = false; //durante debug
-    }
-
-    /// <summary>
-    /// Start is called on the frame when a script is enabled just before
-    /// any of the Update methods is called the first time.
-    /// </summary>
-    void Start()
-    {
-        gameController = FindObjectOfType<GameController>();
-        //Toggle();
-    }
-
-    /// <summary>
-    /// OnMouseDown is called when the user has pressed the mouse button while
-    /// over the GUIElement or Collider.
-    /// </summary>
-    void OnMouseDown()
-    {
-        if (isFaceUp == true || gameController.processando == true) {
+        if (isFaceUp == true || GameController.Instance.Processing == true) {
             return;
-        } else if (isFaceUp == false && gameController.lastCard == null) {
-            //é a primeira carta
+        } else if (isFaceUp == false && GameController.Instance.LastCard == null) {
             //isFaceUp = true;
-            gameController.lastCard = this;
+            GameController.Instance.LastCard = this;
             Toggle();
-        } else if (gameController.lastCard != null && gameController.lastCard.cardIndex == this.cardIndex) {
-            print ("é a mesma");
-            gameController.lastCard = null;
+        } else if (GameController.Instance.LastCard != null && GameController.Instance.LastCard.cardIndex == this.cardIndex) {
+            GameController.Instance.LastCard = null;
             Toggle();
-            gameController.AlterarTentativas();
-        } else if (gameController.lastCard != null &&  gameController.lastCard.cardIndex != this.cardIndex) {
-            print ("diferente");
+            GameController.Instance.UpdateTries();
+        } else if (GameController.Instance.LastCard != null && GameController.Instance.LastCard.cardIndex != this.cardIndex) {
             Toggle();
-            gameController.AlterarTentativas();
+            GameController.Instance.UpdateTries();
             StartCoroutine(ToggleAgain());
         }
-        
     }
 
-    IEnumerator ToggleAgain() {
-        gameController.processando = true;
+    private IEnumerator ToggleAgain() {
+        GameController.Instance.Processing = true;
         yield return new WaitForSeconds(1f);
 
-        gameController.lastCard.Toggle();
-        gameController.lastCard = null;
+        GameController.Instance.LastCard.Toggle();
+        GameController.Instance.LastCard = null;
         
         Toggle();
 
-        gameController.processando = false;
+        GameController.Instance.Processing = false;
     }
 }
